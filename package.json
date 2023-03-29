@@ -1,0 +1,87 @@
+{
+  "name": "vsfiler",
+  "displayName": "vsfiler",
+  "description": "",
+  "version": "0.0.1",
+  "publisher": "harehare",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/harehare/vsfiler.git"
+  },
+  "engines": {
+    "vscode": "^1.76.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionKind": [
+    "ui"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vsfiler.open",
+        "title": "vsfiler: Open Filer"
+      },
+      {
+        "command": "vsfiler.openActiveFile",
+        "title": "vsfiler: Open Active File In Filer"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "vsfiler",
+      "properties": {
+        "vsfiler.excludeGitIgnore": {
+          "title": "vsfiler: Exlucde .gitignore",
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Controls whether entries in .gitignore should be parsed and excluded from the vsfiler."
+        },
+        "vsfiler.exclude": {
+          "title": "vsfiler: Exclude",
+          "type": "string",
+          "default": "**/{dist,node_modules,.git,vendor,tmp,temp,elm-stuff,zig-out,zig-cache}/**",
+          "markdownDescription": "Configure glob patterns for exluding files."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.76.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "@vscode/test-electron": "^2.3.0",
+    "eslint": "^8.37.0",
+    "glob": "^9.3.2",
+    "mocha": "^10.2.0",
+    "ts-loader": "^9.4.2",
+    "typescript": "^5.0.2",
+    "webpack": "^5.76.3",
+    "webpack-cli": "^5.0.1"
+  },
+  "dependencies": {
+    "camelcase": "^7.0.1",
+    "decamelize": "^6.0.0",
+    "ignore": "^5.2.4",
+    "lru-cache": "^8.0.4"
+  }
+}
