@@ -80,6 +80,7 @@ export const open = async ({
         .join(", ")}`
     : "Search";
   quickPick.matchOnDescription = true;
+  quickPick.enabled = false;
   quickPick.items = [loadingItem()];
   quickPick.show();
 
@@ -130,6 +131,7 @@ export const open = async ({
         ]),
     ...menuItems(),
   ];
+  quickPick.enabled = true;
 
   {
     let currentRoot = openDirPath;
