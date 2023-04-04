@@ -2,7 +2,7 @@
   "name": "vsfiler",
   "displayName": "vsfiler: File Explorer for VS Code, inspired by vimfiler",
   "description": "",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "harehare",
   "repository": {
     "type": "git",

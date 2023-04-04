@@ -184,10 +184,11 @@ export const open = async ({
           ? getWorkspaceRoot(item.uri.path)
           : undefined;
 
-        currentRoot = isRoot
-          ? undefined
-          : item.type === "diff" || item.uri.scheme === "untitled"
+        console.log("!!!", currentRoot);
+        currentRoot = !item.uri.scheme
           ? currentRoot
+          : isRoot
+          ? undefined
           : (await stat(item.uri.path)).isDirectory()
           ? item.uri.path
           : path.dirname(item.uri.path);
@@ -286,6 +287,10 @@ export const open = async ({
         if (item.type === "copy-relative-path") {
           action = { action: "copy-relative-path" };
           quickPick.title = "Select file to copy relative path";
+          quickPick.items = await loadItems({
+            path: currentRoot,
+            options: queryOptions,
+          });
           return;
         }
 
