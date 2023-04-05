@@ -184,7 +184,6 @@ export const open = async ({
           ? getWorkspaceRoot(item.uri.path)
           : undefined;
 
-        console.log("!!!", currentRoot);
         currentRoot = !item.uri.scheme
           ? currentRoot
           : isRoot
