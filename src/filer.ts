@@ -70,7 +70,7 @@ export const open = async ({
     showCurrentDir && vscode.window.activeTextEditor
       ? path.dirname(vscode.window.activeTextEditor.document.uri.path)
       : await getLastOpenDirPath(context);
-  const rootSeparator = separatorItem(workspaceName);
+  const rootSeparator = separatorItem({ label: workspaceName });
 
   quickPick.placeholder = openDirPath
     ? `Search from ${getPathExcludeWorkspaceRoot(openDirPath)}`

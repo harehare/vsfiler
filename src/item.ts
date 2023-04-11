@@ -14,7 +14,6 @@ import { expandQuery, QueryOptions } from "./query";
 
 const stat = util.promisify(fs.stat);
 const readdir = util.promisify(fs.readdir);
-
 const cache = new LRUCache<string, FileItem[]>({
   maxSize: 1000,
   ttl: 1000 * 60 * 10,
@@ -25,6 +24,7 @@ const cache = new LRUCache<string, FileItem[]>({
     return 1;
   },
 });
+let cancelToken: vscode.CancellationTokenSource | undefined = undefined;
 
 export interface FileItem extends vscode.QuickPickItem {
   uri: vscode.Uri;
@@ -44,10 +44,17 @@ export interface FileItem extends vscode.QuickPickItem {
     | "rename";
 }
 
-export const separatorItem = (label?: string): FileItem => ({
+export const separatorItem = ({
+  label,
+  alwaysShow,
+}: {
+  label?: string;
+  alwaysShow?: boolean;
+}): FileItem => ({
   label: label ?? "",
   uri: vscode.Uri.from({ scheme: "" }),
   kind: vscode.QuickPickItemKind.Separator,
+  alwaysShow,
 });
 
 export const loadingItem = (): FileItem => ({
@@ -117,9 +124,15 @@ export const findItems = async ({
     return [];
   }
 
+  if (cancelToken) {
+    cancelToken.cancel();
+    cancelToken = undefined;
+  }
+
   const cacheKey = `${root ?? "root"}.${query}`;
 
   if (!cache.has(cacheKey)) {
+    cancelToken = new vscode.CancellationTokenSource();
     const workspaceRoot = getWorkspaceRoot(root);
     const isRoot = isWorkspaceRoot(root);
 
@@ -127,7 +140,9 @@ export const findItems = async ({
       vscode.workspace.findFiles(
         new vscode.RelativePattern(root, "*"),
         exclude,
-        10000
+        10000,
+
+        cancelToken.token
       ),
       vscode.workspace.findFiles(
         new vscode.RelativePattern(
@@ -135,7 +150,8 @@ export const findItems = async ({
           query ? `**/${expandQuery(query, options)}` : "*"
         ),
         exclude,
-        10000
+        10000,
+        cancelToken.token
       ),
       readdir(root),
     ]);
@@ -183,26 +199,26 @@ export const findItems = async ({
     if (isWorkspaceRoot(root)) {
       cache.set(cacheKey, [
         ...filteredItem,
-        separatorItem("FILE"),
+        separatorItem({ label: "FILE", alwaysShow: true }),
         newFileItem(root, true),
         newDirectoryItem(root, true),
         ...(copyUri ? [pasteItem(vscode.Uri.file(root))] : []),
-        separatorItem(),
+        separatorItem({}),
       ]);
     } else {
       cache.set(cacheKey, [
-        separatorItem(getPathExcludeWorkspaceRoot(root)),
+        separatorItem({ label: getPathExcludeWorkspaceRoot(root) }),
         {
           label: "$(reply)  ../",
           uri: vscode.Uri.file(path.dirname(root)),
           type: "directory",
         },
         ...filteredItem,
-        separatorItem("FILE"),
+        separatorItem({ label: "FILE", alwaysShow: true }),
         newFileItem(root, false),
         newDirectoryItem(root, false),
         ...(copyUri ? [pasteItem(vscode.Uri.file(root))] : []),
-        separatorItem(),
+        separatorItem({}),
       ]);
     }
   }
@@ -220,7 +236,7 @@ export const openEditorItems = (): FileItem[] => {
   }
 
   return [
-    separatorItem("OPEN EDITORS"),
+    separatorItem({ label: "OPEN EDITORS", alwaysShow: true }),
     ...items.map(
       (item): FileItem => ({
         uri: item.uri,
@@ -232,6 +248,7 @@ export const openEditorItems = (): FileItem[] => {
             ? removeWorkspaceRootFromPath(item.uri.path)
             : "",
         type: "file",
+        alwaysShow: true,
       })
     ),
   ];
@@ -242,6 +259,7 @@ const newFileItem = (dir: string, isRoot: boolean): FileItem => ({
   label: "$(new-file)  New File...",
   description: isRoot ? removeWorkspaceRootFromPath(dir) : "",
   type: "new-file",
+  alwaysShow: true,
 });
 
 const newDirectoryItem = (dir: string, isRoot: boolean): FileItem => ({
@@ -249,29 +267,34 @@ const newDirectoryItem = (dir: string, isRoot: boolean): FileItem => ({
   label: "$(file-directory-create)  New Folder...",
   description: isRoot ? removeWorkspaceRootFromPath(dir) : "",
   type: "new-folder",
+  alwaysShow: true,
 });
 
 export const menuItems = (): FileItem[] => [
-  separatorItem(),
+  separatorItem({ alwaysShow: true }),
   {
     label: "$(split-horizontal)  Open to the Side",
     uri: vscode.Uri.from({ scheme: "" }),
     type: "open-to-the-side",
+    alwaysShow: true,
   },
   {
     uri: vscode.Uri.from({ scheme: "" }),
     label: "$(copy)  Copy File",
     type: "copy-file",
+    alwaysShow: true,
   },
   {
     uri: vscode.Uri.from({ scheme: "" }),
     label: "$(link)  Copy Relative Path",
     type: "copy-relative-path",
+    alwaysShow: true,
   },
   {
     uri: vscode.Uri.from({ scheme: "" }),
     label: "$(edit)  Rename...",
     type: "rename",
+    alwaysShow: true,
   },
   {
     uri: vscode.Uri.from({ scheme: "" }),
