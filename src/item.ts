@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as util from "util";
 import { Ignore } from "ignore";
-import LRUCache from "lru-cache";
+import { LRUCache } from "lru-cache";
 
 import {
   getWorkspaceRoot,
@@ -15,8 +15,8 @@ import { expandQuery, QueryOptions } from "./query";
 const stat = util.promisify(fs.stat);
 const readdir = util.promisify(fs.readdir);
 const cache = new LRUCache<string, FileItem[]>({
-  maxSize: 1000,
-  ttl: 1000 * 60 * 10,
+  maxSize: 100,
+  ttl: 1000 * 60 * 2,
   allowStale: false,
   updateAgeOnGet: false,
   updateAgeOnHas: false,
@@ -126,6 +126,7 @@ export const findItems = async ({
 
   if (cancelToken) {
     cancelToken.cancel();
+    cancelToken.dispose();
     cancelToken = undefined;
   }
 
