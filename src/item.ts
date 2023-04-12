@@ -24,7 +24,6 @@ const cache = new LRUCache<string, FileItem[]>({
     return 1;
   },
 });
-let cancelToken: vscode.CancellationTokenSource | undefined = undefined;
 
 export interface FileItem extends vscode.QuickPickItem {
   uri: vscode.Uri;
@@ -124,16 +123,9 @@ export const findItems = async ({
     return [];
   }
 
-  if (cancelToken) {
-    cancelToken.cancel();
-    cancelToken.dispose();
-    cancelToken = undefined;
-  }
-
   const cacheKey = `${root ?? "root"}.${query}`;
 
   if (!cache.has(cacheKey)) {
-    cancelToken = new vscode.CancellationTokenSource();
     const workspaceRoot = getWorkspaceRoot(root);
     const isRoot = isWorkspaceRoot(root);
 
@@ -141,9 +133,7 @@ export const findItems = async ({
       vscode.workspace.findFiles(
         new vscode.RelativePattern(root, "*"),
         exclude,
-        10000,
-
-        cancelToken.token
+        8000
       ),
       vscode.workspace.findFiles(
         new vscode.RelativePattern(
@@ -151,8 +141,7 @@ export const findItems = async ({
           query ? `**/${expandQuery(query, options)}` : "*"
         ),
         exclude,
-        10000,
-        cancelToken.token
+        8000
       ),
       readdir(root),
     ]);
