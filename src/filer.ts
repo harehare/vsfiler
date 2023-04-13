@@ -25,6 +25,7 @@ import {
 } from "./util";
 import { defaultQueryOptions, QueryOptions } from "./query";
 import { Ignore } from "ignore";
+import { debounce } from "throttle-debounce";
 
 const stat = util.promisify(fs.stat);
 const LAST_OPEN_PATH_KEY = "LAST_OPEN_PATH_KEY";
@@ -138,7 +139,7 @@ export const open = async ({
     let queryOptions: QueryOptions = defaultQueryOptions;
     let action: Action | undefined = undefined;
 
-    const search = async (query: string) => {
+    const search = debounce(200, async (query: string) => {
       quickPick.busy = true;
 
       quickPick.items = [];
@@ -168,11 +169,13 @@ export const open = async ({
       }
 
       quickPick.busy = false;
-    };
+    });
 
     quickPick.onDidChangeValue(search);
     quickPick.onDidAccept(async () => {
       if (quickPick.selectedItems.length > 0) {
+        search.cancel();
+
         const item = quickPick.selectedItems[0];
 
         if (item.type === "empty") {
@@ -184,13 +187,15 @@ export const open = async ({
           ? getWorkspaceRoot(item.uri.path)
           : undefined;
 
-        currentRoot = !item.uri.scheme
-          ? currentRoot
-          : isRoot
-          ? undefined
-          : (await stat(item.uri.path)).isDirectory()
-          ? item.uri.path
-          : path.dirname(item.uri.path);
+        currentRoot =
+          !item.uri.scheme || item.uri.path === "/"
+            ? currentRoot
+            : isRoot
+            ? undefined
+            : (await stat(item.uri.path)).isDirectory()
+            ? item.uri.path
+            : path.dirname(item.uri.path);
+
         quickPick.placeholder = isRoot
           ? vscode.workspace.name && `Search from ${vscode.workspace.name}`
           : `Search from ${getPathExcludeWorkspaceRoot(item.uri.path)}`;
