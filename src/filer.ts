@@ -142,7 +142,6 @@ export const open = async ({
     const search = debounce(200, async (query: string) => {
       quickPick.busy = true;
 
-      quickPick.items = [];
       if (currentRoot && !isWorkspaceRoot(currentRoot)) {
         quickPick.items = [
           ...(await findItems({

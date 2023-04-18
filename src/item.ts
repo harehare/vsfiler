@@ -129,12 +129,7 @@ export const findItems = async ({
     const workspaceRoot = getWorkspaceRoot(root);
     const isRoot = isWorkspaceRoot(root);
 
-    const [currentFiles, matchFiles, currentDirs] = await Promise.all([
-      vscode.workspace.findFiles(
-        new vscode.RelativePattern(root, "*"),
-        exclude,
-        8000
-      ),
+    const [matchFiles, currentDirs] = await Promise.all([
       vscode.workspace.findFiles(
         new vscode.RelativePattern(
           root,
@@ -156,21 +151,16 @@ export const findItems = async ({
         type: "directory",
       }));
 
-    const files: FileItem[] = [
-      ...new Set([
-        ...currentFiles.map((f) => f.path),
-        ...matchFiles.map((f) => f.path),
-      ]),
-    ].map((filePath) => ({
-      uri: vscode.Uri.file(filePath),
-      label: `$(${vscode.ThemeIcon.File.id})  ${path.basename(filePath)}`,
+    const files: FileItem[] = matchFiles.map((f) => ({
+      uri: vscode.Uri.file(f.path),
+      label: `$(${vscode.ThemeIcon.File.id})  ${path.basename(f.path)}`,
       description: workspaceRoot
-        ? workspaceRoot.uri.path === path.dirname(filePath)
+        ? workspaceRoot.uri.path === path.dirname(f.path)
           ? workspaceRoot.name
-          : root === path.dirname(filePath)
+          : root === path.dirname(f.path)
           ? ""
           : `${workspaceRoot.name} - ${path.dirname(
-              filePath.replace(workspaceRoot.uri.path, "")
+              f.path.replace(workspaceRoot.uri.path, "")
             )}`
         : "",
       type: "file",
