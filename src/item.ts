@@ -43,17 +43,10 @@ export interface FileItem extends vscode.QuickPickItem {
     | "rename";
 }
 
-export const separatorItem = ({
-  label,
-  alwaysShow,
-}: {
-  label?: string;
-  alwaysShow?: boolean;
-}): FileItem => ({
+export const separatorItem = (label?: string): FileItem => ({
   label: label ?? "",
   uri: vscode.Uri.from({ scheme: "" }),
   kind: vscode.QuickPickItemKind.Separator,
-  alwaysShow,
 });
 
 export const loadingItem = (): FileItem => ({
@@ -179,26 +172,26 @@ export const findItems = async ({
     if (isWorkspaceRoot(root)) {
       cache.set(cacheKey, [
         ...filteredItem,
-        separatorItem({ label: "FILE", alwaysShow: true }),
+        separatorItem("FILE"),
         newFileItem(root, true),
         newDirectoryItem(root, true),
         ...(copyUri ? [pasteItem(vscode.Uri.file(root))] : []),
-        separatorItem({}),
+        separatorItem(),
       ]);
     } else {
       cache.set(cacheKey, [
-        separatorItem({ label: getPathExcludeWorkspaceRoot(root) }),
+        separatorItem(getPathExcludeWorkspaceRoot(root)),
         {
           label: "$(reply)  ../",
           uri: vscode.Uri.file(path.dirname(root)),
           type: "directory",
         },
         ...filteredItem,
-        separatorItem({ label: "FILE", alwaysShow: true }),
+        separatorItem("FILE"),
         newFileItem(root, false),
         newDirectoryItem(root, false),
         ...(copyUri ? [pasteItem(vscode.Uri.file(root))] : []),
-        separatorItem({}),
+        separatorItem(),
       ]);
     }
   }
@@ -216,7 +209,7 @@ export const openEditorItems = (): FileItem[] => {
   }
 
   return [
-    separatorItem({ label: "OPEN EDITORS", alwaysShow: true }),
+    separatorItem("OPEN EDITORS"),
     ...items.map(
       (item): FileItem => ({
         uri: item.uri,
@@ -228,7 +221,6 @@ export const openEditorItems = (): FileItem[] => {
             ? removeWorkspaceRootFromPath(item.uri.path)
             : "",
         type: "file",
-        alwaysShow: true,
       })
     ),
   ];
@@ -239,7 +231,6 @@ const newFileItem = (dir: string, isRoot: boolean): FileItem => ({
   label: "$(new-file)  New File...",
   description: isRoot ? removeWorkspaceRootFromPath(dir) : "",
   type: "new-file",
-  alwaysShow: true,
 });
 
 const newDirectoryItem = (dir: string, isRoot: boolean): FileItem => ({
@@ -247,34 +238,29 @@ const newDirectoryItem = (dir: string, isRoot: boolean): FileItem => ({
   label: "$(file-directory-create)  New Folder...",
   description: isRoot ? removeWorkspaceRootFromPath(dir) : "",
   type: "new-folder",
-  alwaysShow: true,
 });
 
 export const menuItems = (): FileItem[] => [
-  separatorItem({ alwaysShow: true }),
+  separatorItem(),
   {
     label: "$(split-horizontal)  Open to the Side",
     uri: vscode.Uri.from({ scheme: "" }),
     type: "open-to-the-side",
-    alwaysShow: true,
   },
   {
     uri: vscode.Uri.from({ scheme: "" }),
     label: "$(copy)  Copy File",
     type: "copy-file",
-    alwaysShow: true,
   },
   {
     uri: vscode.Uri.from({ scheme: "" }),
     label: "$(link)  Copy Relative Path",
     type: "copy-relative-path",
-    alwaysShow: true,
   },
   {
     uri: vscode.Uri.from({ scheme: "" }),
     label: "$(edit)  Rename...",
     type: "rename",
-    alwaysShow: true,
   },
   {
     uri: vscode.Uri.from({ scheme: "" }),

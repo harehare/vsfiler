@@ -71,7 +71,7 @@ export const open = async ({
     showCurrentDir && vscode.window.activeTextEditor
       ? path.dirname(vscode.window.activeTextEditor.document.uri.path)
       : await getLastOpenDirPath(context);
-  const rootSeparator = separatorItem({ label: workspaceName });
+  const rootSeparator = separatorItem(workspaceName);
 
   quickPick.placeholder = openDirPath
     ? `Search from ${getPathExcludeWorkspaceRoot(openDirPath)}`
@@ -139,7 +139,7 @@ export const open = async ({
     let queryOptions: QueryOptions = defaultQueryOptions;
     let action: Action | undefined = undefined;
 
-    const search = debounce(200, async (query: string) => {
+    const search = debounce(100, async (query: string) => {
       quickPick.busy = true;
 
       if (currentRoot && !isWorkspaceRoot(currentRoot)) {
