@@ -141,6 +141,7 @@ export const open = async ({
 
     const search = debounce(100, async (query: string) => {
       quickPick.busy = true;
+      quickPick.enabled = false;
 
       if (currentRoot && !isWorkspaceRoot(currentRoot)) {
         quickPick.items = [
@@ -167,6 +168,7 @@ export const open = async ({
         ];
       }
 
+      quickPick.enabled = true;
       quickPick.busy = false;
     });
 
