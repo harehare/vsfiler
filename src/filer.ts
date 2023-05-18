@@ -143,7 +143,7 @@ export const open = async ({
       quickPick.busy = true;
 
       if (currentRoot && !isWorkspaceRoot(currentRoot)) {
-        quickPick.items = [
+        const items = [
           ...(await findItems({
             root: currentRoot,
             query,
@@ -154,8 +154,11 @@ export const open = async ({
           })),
           ...menuItems(),
         ];
+        if (quickPick.items.length !== items.length) {
+          quickPick.items = items;
+        }
       } else {
-        quickPick.items = [
+        const items = [
           ...(await findItemsFromWorkspaceRoot({
             query,
             gitignore,
@@ -165,6 +168,9 @@ export const open = async ({
           })),
           ...menuItems(),
         ];
+        if (quickPick.items.length !== items.length) {
+          quickPick.items = items;
+        }
       }
 
       quickPick.busy = false;
