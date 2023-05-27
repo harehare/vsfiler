@@ -139,40 +139,38 @@ export const open = async ({
     let queryOptions: QueryOptions = defaultQueryOptions;
     let action: Action | undefined = undefined;
 
-    const search = debounce(300, async (query: string) => {
+    const search = debounce(150, async (query: string) => {
       quickPick.busy = true;
 
-      if (currentRoot && !isWorkspaceRoot(currentRoot)) {
-        const items = [
-          ...(await findItems({
-            root: currentRoot,
-            query,
-            gitignore,
-            exclude,
-            copyUri: action?.action === "paste-file" ? action.uri : undefined,
-            options: queryOptions,
-          })),
-          ...menuItems(),
-        ];
-        if (quickPick.items.length !== items.length) {
-          quickPick.items = items;
-        }
-      } else {
-        const items = [
-          ...(await findItemsFromWorkspaceRoot({
-            query,
-            gitignore,
-            exclude,
-            copyUri: action?.action === "paste-file" ? action.uri : undefined,
-            options: queryOptions,
-          })),
-          ...menuItems(),
-        ];
-        if (quickPick.items.length !== items.length) {
-          quickPick.items = items;
-        }
-      }
+      const items =
+        currentRoot && !isWorkspaceRoot(currentRoot)
+          ? [
+              ...(await findItems({
+                root: currentRoot,
+                query,
+                gitignore,
+                exclude,
+                copyUri:
+                  action?.action === "paste-file" ? action.uri : undefined,
+                options: queryOptions,
+              })),
+              ...menuItems(),
+            ]
+          : [
+              ...(await findItemsFromWorkspaceRoot({
+                query,
+                gitignore,
+                exclude,
+                copyUri:
+                  action?.action === "paste-file" ? action.uri : undefined,
+                options: queryOptions,
+              })),
+              ...menuItems(),
+            ];
 
+      if (quickPick.items.length !== items.length) {
+        quickPick.items = items;
+      }
       quickPick.busy = false;
     });
 
@@ -197,7 +195,8 @@ export const open = async ({
             ? currentRoot
             : isRoot
             ? undefined
-            : (await stat(item.uri.path)).isDirectory()
+            : fs.existsSync(item.uri.path) &&
+              (await stat(item.uri.path)).isDirectory()
             ? item.uri.path
             : path.dirname(item.uri.path);
 
@@ -418,8 +417,7 @@ export const open = async ({
         {
           quickPick.hide();
           await vscode.window.showTextDocument(
-            await vscode.workspace.openTextDocument(item.uri),
-            { preview: false }
+            await vscode.workspace.openTextDocument(item.uri)
           );
         }
       }
