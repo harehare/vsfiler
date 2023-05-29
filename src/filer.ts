@@ -139,7 +139,7 @@ export const open = async ({
     let queryOptions: QueryOptions = defaultQueryOptions;
     let action: Action | undefined = undefined;
 
-    const search = debounce(150, async (query: string) => {
+    const search = debounce(250, async (query: string) => {
       quickPick.busy = true;
 
       const items =
